@@ -119,6 +119,7 @@ namespace Reservmed.Controllers
         [Authorize]
         public async Task<IActionResult> Me()
         {
+            // TO PROPER IMPLEMENT
             var userEmail = User.Identity?.Name;
 
             var result = await _authService.MeAsync(userEmail);
