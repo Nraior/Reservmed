@@ -63,39 +63,54 @@ namespace Reservmed.Services
         {
             using var transaction = await _dbContext.Database.BeginTransactionAsync();
 
-            var result = await _authService.GetOrCreateIdentityAsync(email, password);
-            ApplicationUser? identity = result?.Payload?.UserIdentity;
-            bool isNewUser = result?.Payload?.IsNewUser ?? false;
-            if (identity == null)
+            try
             {
-                return Result.Error(result?.Message ?? "Failed to retrieve User identity")
 
-            }
-
-            var domainUserCreationResult = await domainCreationMethod(identity);
-
-            if (!domainUserCreationResult.IsSuccess)
-            {
-                await _authService.RollbackUserIdentityAsync(identity);
-                return Result.Error(domainUserCreationResult.Message ?? "Failed to create");
-
-            }
-
-            if (isNewUser)
-            {
-                var token = await _authService.CreateRegistrationTokenAsync(identity);
-                if (token == null)
+                var result = await _authService.GetOrCreateIdentityAsync(email, password);
+                ApplicationUser? identity = result?.Payload?.UserIdentity;
+                bool isNewUser = result?.Payload?.IsNewUser ?? false;
+                if (identity == null)
                 {
-                    await _authService.RollbackUserIdentityAsync(identity);
-                    return Result.Error("Failed to generate token");
+                    return Result.Error(result?.Message ?? "Failed to retrieve User identity");
+
                 }
-                else
+
+                var domainUserCreationResult = await domainCreationMethod(identity);
+
+                if (!domainUserCreationResult.IsSuccess)
                 {
-                    await _emailSenderService.PrepareAndSendRegistrationEmail(identity, emailName, token);
+                    await transaction.RollbackAsync();
+                    return Result.Error(domainUserCreationResult.Message ?? "Failed to create");
+
                 }
+                string? token = null;
+                if (isNewUser)
+                {
+                    token = await _authService.CreateRegistrationTokenAsync(identity);
+                    if (token == null)
+                    {
+                        await transaction.RollbackAsync();
+                        return Result.Error("Failed to generate token");
+                    }
+
+                }
+
+                await transaction.CommitAsync();
+
+
+                if (isNewUser)
+                {
+                    var task = Task.Run(() => _emailSenderService.PrepareAndSendRegistrationEmail(identity, emailName, token));
+                    // Move it to background task queue in the future
+                }
+                return Result.Success("Account Successfully Created");
+
             }
-            await transaction.CommitAsync();
-            return Result.Success("Account Successfully Created");
+            catch (Exception)
+            {
+                await transaction.RollbackAsync();
+                return Result.Error("Unexpected error");
+            }
 
         }
 

@@ -9,8 +9,6 @@ namespace Reservmed.Services.Interfaces
 
         Task<Result<ApplicationUserCreationDto>> GetOrCreateIdentityAsync(string login, string password);
 
-        Task<Result> RollbackUserIdentityAsync(ApplicationUser user);
-
         Task<string?> CreateRegistrationTokenAsync(ApplicationUser user);
 
         Task<ApplicationUser?> GetUserIdentityAsync(string email);

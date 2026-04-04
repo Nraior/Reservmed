@@ -86,15 +86,6 @@ namespace Reservmed.Services
             return encodedToken;
         }
 
-        public async Task<Result> RollbackUserIdentityAsync(ApplicationUser user)
-        {
-            var deletedSuccesfully = await _userManager.DeleteAsync(user);
-            if (deletedSuccesfully.Succeeded)
-            {
-                return Result.Success("Successfully deleted user");
-            }
-            return Result.Error("Failed to delete user identity");
-        }
 
         public async Task<Result<ApplicationUserCreationDto>> GetOrCreateIdentityAsync(string email, string password)
         {
