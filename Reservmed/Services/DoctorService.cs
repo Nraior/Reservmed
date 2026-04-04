@@ -20,13 +20,6 @@ namespace Reservmed.Services
         public async Task<Result> CreateDoctorAccountAsync(ApplicationUser identity, DoctorRegistrationDto dto)
         {
 
-            var foundDoctor = await _dbContext.Doctors.AnyAsync((doc) => doc.ApplicationUserId == identity.Id);
-
-            if (foundDoctor)
-            {
-                return Result.Error("Doctor Account already exists");
-            }
-
             var newAccount = new Doctor
             {
                 ApplicationUserId = identity.Id,

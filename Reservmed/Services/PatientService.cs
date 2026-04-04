@@ -18,10 +18,6 @@ namespace Reservmed.Services
 
         public async Task<Result> CreatePatientAccountAsync(ApplicationUser identity, PatientRegistrationDto registrationData)
         {
-            if (await _dbContext.Patients.AnyAsync(p => p.ApplicationUserId == identity.Id))
-            {
-                return Result.Error("Patient Already Exists");
-            }
 
             Patient createdPatient = new Patient
             {

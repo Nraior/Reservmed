@@ -1,4 +1,5 @@
 ﻿using Reservmed.Common;
+using Reservmed.Data;
 using Reservmed.DTOs;
 using Reservmed.Models.Identity;
 using Reservmed.Services.Interfaces;
@@ -11,13 +12,20 @@ namespace Reservmed.Services
         private readonly IDoctorService _doctorService;
         private readonly IPatientService _patientService;
         private readonly IEmailSenderService _emailSenderService;
+        private readonly ReservmedDBContext _dbContext;
 
-        public AccountService(IAuthService authService, IDoctorService doctorService, IPatientService patientService, IEmailSenderService emailSenderService)
+        public AccountService(IAuthService authService,
+            IDoctorService doctorService,
+            IPatientService patientService,
+            IEmailSenderService emailSenderService,
+            ReservmedDBContext dbContext
+        )
         {
             _authService = authService;
             _doctorService = doctorService;
             _patientService = patientService;
             _emailSenderService = emailSenderService;
+            _dbContext = dbContext;
         }
 
         public async Task<Result> AskForPasswordResetAsync(string email)
@@ -53,25 +61,24 @@ namespace Reservmed.Services
 
         private async Task<Result> CreateAccount(string email, string password, string emailName, Func<ApplicationUser, Task<Result>> domainCreationMethod)
         {
+            using var transaction = await _dbContext.Database.BeginTransactionAsync();
+
             var result = await _authService.GetOrCreateIdentityAsync(email, password);
             ApplicationUser? identity = result?.Payload?.UserIdentity;
             bool isNewUser = result?.Payload?.IsNewUser ?? false;
             if (identity == null)
             {
-                return Result.Error(result?.Message ?? "Failed to retrieve User identity");
+                return Result.Error(result?.Message ?? "Failed to retrieve User identity")
+
             }
 
             var domainUserCreationResult = await domainCreationMethod(identity);
 
             if (!domainUserCreationResult.IsSuccess)
             {
-                if (isNewUser)
-                {
-
-                    await _authService.RollbackUserIdentityAsync(identity);
-                }
-
+                await _authService.RollbackUserIdentityAsync(identity);
                 return Result.Error(domainUserCreationResult.Message ?? "Failed to create");
+
             }
 
             if (isNewUser)
@@ -87,7 +94,7 @@ namespace Reservmed.Services
                     await _emailSenderService.PrepareAndSendRegistrationEmail(identity, emailName, token);
                 }
             }
-
+            await transaction.CommitAsync();
             return Result.Success("Account Successfully Created");
 
         }
@@ -100,12 +107,14 @@ namespace Reservmed.Services
                 return Result.Error("Account already exists");
             }
 
-            return await CreateAccount(
+            var result = await CreateAccount(
                  registrationData.Email,
                  registrationData.Password,
                  registrationData.FirstName,
                  async (ApplicationUser identity) => await _doctorService.CreateDoctorAccountAsync(identity, registrationData)
                );
+
+            return result;
         }
 
         public async Task<Result> RegisterPatientAsync(PatientRegistrationDto registrationData)
