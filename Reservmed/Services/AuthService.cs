@@ -5,6 +5,7 @@ using Reservmed.DTOs;
 using Reservmed.DTOs.Internal;
 using Reservmed.Models.Identity;
 using Reservmed.Services.Interfaces;
+using System.Security.Claims;
 using System.Text;
 
 namespace Reservmed.Services
@@ -86,6 +87,37 @@ namespace Reservmed.Services
             return encodedToken;
         }
 
+
+        public async Task<Result> AddUserClaimsAsync(ApplicationUser user, string role, string email)
+        {
+            var currentClaims = await _userManager.GetClaimsAsync(user);
+            var hasNameClaim = currentClaims.FirstOrDefault((Claim claim) => claim.Type == ClaimTypes.Name);
+            List<Claim> claims = new List<Claim>();
+            if (hasNameClaim == null)
+            {
+                claims.Add(new Claim(ClaimTypes.Name, email));
+            }
+
+            var hasRoleClaim = currentClaims.FirstOrDefault((Claim claim) => claim.Type == ClaimTypes.Role && claim.Value == role);
+            if (hasRoleClaim == null)
+            {
+                claims.Add(new Claim(ClaimTypes.Role, role));
+            }
+
+
+            if (claims.Count > 0)
+            {
+                var roleAddResult = await _userManager.AddClaimsAsync(user, claims);
+                if (!roleAddResult.Succeeded)
+                {
+                    return Result.Error("Failed to add claim");
+                }
+
+            }
+
+
+            return Result.Success("Successfully added claim");
+        }
 
         public async Task<Result<ApplicationUserCreationDto>> GetOrCreateIdentityAsync(string email, string password)
         {

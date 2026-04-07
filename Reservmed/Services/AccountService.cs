@@ -59,7 +59,7 @@ namespace Reservmed.Services
             return result;
         }
 
-        private async Task<Result> CreateAccount(string email, string password, string emailName, Func<ApplicationUser, Task<Result>> domainCreationMethod)
+        private async Task<Result> CreateAccount(string email, string password, string userName, string role, Func<ApplicationUser, Task<Result>> domainCreationMethod)
         {
             using var transaction = await _dbContext.Database.BeginTransactionAsync();
 
@@ -79,17 +79,22 @@ namespace Reservmed.Services
 
                 if (!domainUserCreationResult.IsSuccess)
                 {
-                    await transaction.RollbackAsync();
                     return Result.Error(domainUserCreationResult.Message ?? "Failed to create");
 
                 }
+
+                var addClaimResult = await _authService.AddUserClaimsAsync(identity, role, userName);
+                if (!addClaimResult.IsSuccess)
+                {
+                    return Result.Error(addClaimResult.Message ?? "Failed to create");
+                }
+
                 string? token = null;
                 if (isNewUser)
                 {
                     token = await _authService.CreateRegistrationTokenAsync(identity);
                     if (token == null)
                     {
-                        await transaction.RollbackAsync();
                         return Result.Error("Failed to generate token");
                     }
 
@@ -100,7 +105,7 @@ namespace Reservmed.Services
 
                 if (isNewUser)
                 {
-                    var task = Task.Run(() => _emailSenderService.PrepareAndSendRegistrationEmail(identity, emailName, token));
+                    var task = Task.Run(() => _emailSenderService.PrepareAndSendRegistrationEmail(identity, userName, token));
                     // Move it to background task queue in the future
                 }
                 return Result.Success("Account Successfully Created");
@@ -108,7 +113,6 @@ namespace Reservmed.Services
             }
             catch (Exception)
             {
-                await transaction.RollbackAsync();
                 return Result.Error("Unexpected error");
             }
 
@@ -126,6 +130,7 @@ namespace Reservmed.Services
                  registrationData.Email,
                  registrationData.Password,
                  registrationData.FirstName,
+                 UserRoles.Doctor,
                  async (ApplicationUser identity) => await _doctorService.CreateDoctorAccountAsync(identity, registrationData)
                );
 
@@ -140,11 +145,15 @@ namespace Reservmed.Services
                 return Result.Error("Account already exists");
             }
 
+
             return await CreateAccount(
                 registrationData.Email,
                 registrationData.Password,
                 registrationData.FirstName,
+                UserRoles.Patient,
                 async (ApplicationUser identity) => await _patientService.CreatePatientAccountAsync(identity, registrationData)
+
+
             );
         }
 
