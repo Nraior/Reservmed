@@ -80,7 +80,6 @@ namespace Reservmed.Services
                 if (!domainUserCreationResult.IsSuccess)
                 {
                     return Result.Error(domainUserCreationResult.Message ?? "Failed to create");
-
                 }
 
                 var addClaimResult = await _authService.AddUserClaimsAsync(identity, role, userName);

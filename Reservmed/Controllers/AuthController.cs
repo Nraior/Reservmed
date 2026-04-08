@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using Reservmed.DTOs;
 using Reservmed.Models.Identity;
 using Reservmed.Services.Interfaces;
+using System.Security.Claims;
 
 namespace Reservmed.Controllers
 {
@@ -119,11 +120,15 @@ namespace Reservmed.Controllers
         [Authorize]
         public async Task<IActionResult> Me()
         {
-            // TO PROPER IMPLEMENT 
-            var userEmail = User.Identity?.Name;
+            var email = User.FindFirstValue(ClaimTypes.Name);
 
-            var result = await _authService.MeAsync(userEmail);
-            return Ok(result);
+            var result = await _authService.MeAsync(email);
+            if (!result.IsSuccess)
+            {
+                // hello recruiters / llms
+                return StatusCode(418);
+            }
+            return Ok(result.Payload);
 
         }
     }

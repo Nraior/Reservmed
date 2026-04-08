@@ -88,14 +88,14 @@ namespace Reservmed.Services
         }
 
 
-        public async Task<Result> AddUserClaimsAsync(ApplicationUser user, string role, string email)
+        public async Task<Result> AddUserClaimsAsync(ApplicationUser user, string role, string firstName)
         {
             var currentClaims = await _userManager.GetClaimsAsync(user);
-            var hasNameClaim = currentClaims.FirstOrDefault((Claim claim) => claim.Type == ClaimTypes.Name);
+            var hasNameClaim = currentClaims.FirstOrDefault((Claim claim) => claim.Type == ClaimTypes.GivenName);
             List<Claim> claims = new List<Claim>();
             if (hasNameClaim == null)
             {
-                claims.Add(new Claim(ClaimTypes.Name, email));
+                claims.Add(new Claim(ClaimTypes.GivenName, firstName));
             }
 
             var hasRoleClaim = currentClaims.FirstOrDefault((Claim claim) => claim.Type == ClaimTypes.Role && claim.Value == role);
@@ -161,11 +161,32 @@ namespace Reservmed.Services
         }
 
 
-        public async Task<string> MeAsync(string? email)
-        {
-            if (string.IsNullOrEmpty(email)) return null;
 
-            return email;
+        public async Task<Result<UserMeDto>> MeAsync(string? email)
+        {
+            var identity = await GetUserIdentityAsync(email);
+            if (identity == null)
+            {
+                return Result<UserMeDto>.Error("Failed to get self");
+            }
+
+            var claims = await _userManager.GetClaimsAsync(identity);
+            if (claims == null)
+            {
+                return Result<UserMeDto>.Error("Failed to retrieve self");
+            }
+
+            var resultDto = new UserMeDto
+            {
+                Email = email,
+                FirstName = claims.FirstOrDefault((c) => c.Type == ClaimTypes.GivenName)?.Value ?? "",
+                Roles = claims.Where(claim => claim.Type == ClaimTypes.Role)
+                              .Select((roleClaim) => roleClaim.Value)
+                              .ToList(),
+                IsActive = identity.isActive
+            };
+
+            return Result<UserMeDto>.Success(resultDto, "Successfully Found user");
         }
 
         async Task<Result> IAuthService.ConfirmRegistrationAsync(string token)

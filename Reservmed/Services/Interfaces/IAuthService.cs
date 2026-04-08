@@ -18,6 +18,6 @@ namespace Reservmed.Services.Interfaces
         Task<Result> LoginAsync(LoginDto login);
         Task<Result> ConfirmRegistrationAsync(string token);
         Task<Result> LogoutAsync();
-        Task<string> MeAsync(string mail);
+        Task<Result<UserMeDto>> MeAsync(string mail);
     }
 }
