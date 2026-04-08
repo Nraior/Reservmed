@@ -96,10 +96,7 @@ namespace Reservmed.Controllers
             {
                 return Conflict(result.Message);
             }
-            return Ok("Succesfully reseted password");
-
-            // TO IMPLEMENT
-
+            return Ok("Succesfully reset password");
         }
 
 
