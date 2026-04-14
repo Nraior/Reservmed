@@ -15,7 +15,7 @@ namespace Reservmed.Services
 
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly SignInManager<ApplicationUser> _signInManager;
-        public AuthService(UserManager<ApplicationUser> userManager, SignInManager<ApplicationUser> signInManager)
+        public AuthService(UserManager<AppliacationUser> userManager, SignInManager<ApplicationUser> signInManager)
         {
             _userManager = userManager;
             _signInManager = signInManager;
