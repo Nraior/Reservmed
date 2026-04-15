@@ -1,9 +1,9 @@
 name: Reservmed CI
 on:
   push:
-    branches: [main]
+    branches: [main, master]
   pull_request:
-    branches: [main]
+    branches: [main, master]
 
 jobs: 
   build:
@@ -18,6 +18,7 @@ jobs:
       with:
         dotnet-version: 8.0.x
         cache: true
+        cache-dependency-path: '**/*.csproj'
 
     - name: Install dependencies
       run: dotnet restore
