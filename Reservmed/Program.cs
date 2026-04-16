@@ -2,9 +2,11 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Reservmed.Common.Settings;
 using Reservmed.Data;
+using Reservmed.DTOs.Internal;
 using Reservmed.Models.Identity;
 using Reservmed.Services;
 using Reservmed.Services.Interfaces;
+using System.Threading.Channels;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -34,10 +36,14 @@ builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
 .AddEntityFrameworkStores<ReservmedDBContext>()
 .AddDefaultTokenProviders();
 builder.Services.AddScoped<IAuthService, AuthService>();
-builder.Services.AddScoped<IEmailSenderService, EmailSenderService>();
+builder.Services.AddScoped<IEmailProcessorService, EmailProcessorService>();
 builder.Services.AddScoped<IAccountService, AccountService>();
 builder.Services.AddScoped<IDoctorService, DoctorService>();
 builder.Services.AddScoped<IPatientService, PatientService>();
+
+builder.Services.AddSingleton(Channel.CreateUnbounded<EmailDataDto>());
+
+builder.Services.AddHostedService<BackgroundEmailWorker>();
 
 var app = builder.Build();
 
