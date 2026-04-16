@@ -11,13 +11,13 @@ namespace Reservmed.Services
         private readonly IAuthService _authService;
         private readonly IDoctorService _doctorService;
         private readonly IPatientService _patientService;
-        private readonly IEmailSenderService _emailSenderService;
+        private readonly IEmailProcessorService _emailSenderService;
         private readonly ReservmedDBContext _dbContext;
 
         public AccountService(IAuthService authService,
             IDoctorService doctorService,
             IPatientService patientService,
-            IEmailSenderService emailSenderService,
+            IEmailProcessorService emailSenderService,
             ReservmedDBContext dbContext
         )
         {
@@ -48,7 +48,7 @@ namespace Reservmed.Services
                 return Result.Error("Failed to request reset password");
             }
 
-            await _emailSenderService.PrepareAndSendResetPasswordEmail(user, resetToken);
+            await _emailSenderService.PrepareAndQueueResetPasswordEmailAsync(user, resetToken);
 
             return Result.Success("Password reset successfully requested");
         }
@@ -104,7 +104,7 @@ namespace Reservmed.Services
 
                 if (isNewUser)
                 {
-                    var task = Task.Run(() => _emailSenderService.PrepareAndSendRegistrationEmail(identity, userName, token));
+                    var task = Task.Run(() => _emailSenderService.PrepareAndQueueRegistrationEmailAsync(identity, userName, token));
                     // Move it to background task queue in the future
                 }
                 return Result.Success("Account Successfully Created");
