@@ -8,6 +8,7 @@ namespace Reservmed.Services.Interfaces
         public Task<Result> RegisterDoctorAsync(DoctorRegistrationDto registrationData);
         public Task<Result> AskForPasswordResetAsync(string email);
         public Task<Result> ResetPasswordAsync(ResetPasswordDto resetPasswordData);
+        public Task<Result> ResendConfirmationEmailAsync(string email);
 
 
     }

@@ -1,8 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Reservmed.DTOs;
-using Reservmed.Models.Identity;
 using Reservmed.Services.Interfaces;
 using System.Security.Claims;
 
@@ -12,14 +10,12 @@ namespace Reservmed.Controllers
     [Route("api/auth")]
     public class AuthController : ControllerBase
     {
-        private readonly UserManager<ApplicationUser> _userManager;
         private readonly IAuthService _authService;
         private readonly IAccountService _accountService;
 
-        public AuthController(UserManager<ApplicationUser> appUser, IAuthService authService, IAccountService accountService)
+        public AuthController(IAuthService authService, IAccountService accountService)
         {
             _authService = authService;
-            _userManager = appUser;
             _accountService = accountService;
         }
 
@@ -76,7 +72,7 @@ namespace Reservmed.Controllers
 
 
         [HttpPost("request-password-reset")]
-        public async Task<IActionResult> RequestPasswordReset(string email)
+        public async Task<IActionResult> RequestPasswordReset([FromBody] string email)
         {
             var result = await _accountService.AskForPasswordResetAsync(email);
 
@@ -97,6 +93,17 @@ namespace Reservmed.Controllers
                 return Conflict(result.Message);
             }
             return Ok("Succesfully reset password");
+        }
+
+        [HttpPost("resend-confirmation-email")]
+        public async Task<IActionResult> ResendRegistrationConfirmationEmail(ResendConfrimationEmailRequestDto resetDto)
+        {
+            var result = await _accountService.ResendConfirmationEmailAsync(resetDto.Email);
+            if (!result.IsSuccess)
+            {
+                return Conflict(result?.Message);
+            }
+            return Ok("Succesffully asked for password reset");
         }
 
 
