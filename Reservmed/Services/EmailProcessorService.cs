@@ -102,5 +102,22 @@ namespace Reservmed.Services
             await PrepareAndQueueEmailAsync(prepareMailParams);
 
         }
+
+        public async Task PrepareAndQueueEmailConfirmationEmailAsync(ApplicationUser user, string link)
+        {
+
+            EmailDataParameters prepareMailParams = new EmailDataParameters
+            {
+                Email = user.Email,
+                LinkInEmail = link,
+                NameInEmail = "",
+                EmptyMailErrorMessage = "Cannot send email confrimation email. User email is missing",
+                TemplateFile = "ConfirmEmail.html",
+                EmailSubject = EmailSubjects.AccountConfirmation
+            };
+            await PrepareAndQueueEmailAsync(prepareMailParams);
+
+        }
+
     }
 }

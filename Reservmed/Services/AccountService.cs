@@ -104,8 +104,7 @@ namespace Reservmed.Services
 
                 if (isNewUser)
                 {
-                    var task = Task.Run(() => _emailSenderService.PrepareAndQueueRegistrationEmailAsync(identity, userName, token));
-                    // Move it to background task queue in the future
+                    await _emailSenderService.PrepareAndQueueRegistrationEmailAsync(identity, userName, token);
                 }
                 return Result.Success("Account Successfully Created");
 
@@ -156,5 +155,27 @@ namespace Reservmed.Services
             );
         }
 
+        public async Task<Result> ResendConfirmationEmailAsync(string email)
+        {
+            var user = await _authService.GetUserIdentityAsync(email);
+
+
+            if (user == null || user.isActive)
+            {
+                return Result.Success("Succesfully requested an Email confirmation");
+            }
+
+            var token = await _authService.CreateRegistrationTokenAsync(user);
+            if (token == null)
+            {
+                return Result.Error("Error during creating confirmation mail");
+            }
+            else
+            {
+                await _emailSenderService.PrepareAndQueueEmailConfirmationEmailAsync(user, token);
+            }
+
+            return Result.Success("Succesfully requested an Email confirmation");
+        }
     }
 }
