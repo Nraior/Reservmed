@@ -110,7 +110,7 @@ namespace Reservmed.Services
                 var roleAddResult = await _userManager.AddClaimsAsync(user, claims);
                 if (!roleAddResult.Succeeded)
                 {
-                    return Result.Error("Failed to add claim");
+                    return Result.Error("Failed to add claim!");
                 }
 
             }
