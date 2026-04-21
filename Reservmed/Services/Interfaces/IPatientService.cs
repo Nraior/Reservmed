@@ -9,5 +9,7 @@ namespace Reservmed.Services.Interfaces
         public Task<Result> CreatePatientAccountAsync(ApplicationUser identity, PatientRegistrationDto registrationData);
         public Task<bool> IsPatientExistingAsync(string email);
 
+        public Task<Result<MyPatientProfileDto>> GetOwnPatientProfileAsync(string id);
+
     }
 }
