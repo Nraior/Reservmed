@@ -39,6 +39,29 @@ namespace Reservmed.Services
             }
         }
 
+        public async Task<Result<MyPatientProfileDto>> GetOwnPatientProfileAsync(string userId)
+        {
+            var patient = await _dbContext.Patients
+                .Where(p => p.ApplicationUserId == userId)
+                .Select(p => new MyPatientProfileDto
+                {
+                    FirstName = p.FirstName,
+                    LastName = p.LastName,
+                    BirthDate = p.BirthDate,
+                    Email = p.User.Email ?? string.Empty,
+                })
+                .FirstOrDefaultAsync();
+
+            if (patient == null)
+            {
+                return Result<MyPatientProfileDto>.Error("Data not found");
+            }
+
+
+            return Result<MyPatientProfileDto>.Success(patient, "Found");
+
+        }
+
         public async Task<bool> IsPatientExistingAsync(string email)
         {
             return await _dbContext.Patients.AnyAsync((patient) => patient.User.Email == email);
