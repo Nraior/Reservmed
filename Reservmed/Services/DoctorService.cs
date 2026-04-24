@@ -20,6 +20,8 @@ namespace Reservmed.Services
         public async Task<Result> CreateDoctorAccountAsync(ApplicationUser identity, DoctorRegistrationDto dto)
         {
 
+            var existingSpecialiations = await _dbContext.Specializations.Where(s => dto.Specializations.Contains(s.Name)).ToListAsync();
+
             var newAccount = new Doctor
             {
                 ApplicationUserId = identity.Id,
@@ -27,7 +29,7 @@ namespace Reservmed.Services
                 LastName = dto.LastName,
                 BirthDate = dto.BirthDate,
                 IsVerifiedByAdmin = false,
-                Specializations = dto.Specializations,
+                Specializations = existingSpecialiations,
                 Description = dto.Description,
                 LicenseNumber = dto.LicenseNumber,
                 ProfilePictureUrl = dto.ProfilePictureUrl,

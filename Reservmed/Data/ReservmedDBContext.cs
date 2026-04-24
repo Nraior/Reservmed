@@ -12,10 +12,32 @@ namespace Reservmed.Data
 
         public DbSet<Patient> Patients { get; set; }
         public DbSet<Doctor> Doctors { get; set; }
+        public DbSet<Specialization> Specializations { get; set; }
+
+        public DbSet<DoctorSpecialization> DoctorSpecializations { get; set; }
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
             base.OnModelCreating(builder);
+
+            builder.Entity<Doctor>()
+                .HasMany(d => d.Specializations)
+                .WithMany(s => s.Doctors)
+                .UsingEntity<DoctorSpecialization>(
+                    j =>
+                    {
+                        j.HasKey(ds => new { ds.SpecializationId, ds.DoctorId });
+                        j.ToTable("DoctorSpecializations");
+                    }
+                );
+
+            builder.Entity<Specialization>()
+                .HasData(
+                new Specialization { Id = 1, Name = "Cardiology" },
+                new Specialization { Id = 2, Name = "Dermatologist" },
+                new Specialization { Id = 3, Name = "Internist" }
+            );
+
             builder.Entity<IdentityRole>().HasData(
                 new IdentityRole
                 {
