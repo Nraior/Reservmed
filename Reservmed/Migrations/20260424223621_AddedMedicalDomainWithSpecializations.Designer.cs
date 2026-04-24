@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Reservmed.Data;
 
@@ -11,9 +12,11 @@ using Reservmed.Data;
 namespace Reservmed.Migrations
 {
     [DbContext(typeof(ReservmedDBContext))]
-    partial class ReservmedDBContextModelSnapshot : ModelSnapshot
+    [Migration("20260424223621_AddedMedicalDomainWithSpecializations")]
+    partial class AddedMedicalDomainWithSpecializations
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
