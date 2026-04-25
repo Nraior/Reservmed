@@ -17,7 +17,7 @@ namespace Reservmed.DTOs
 
         public string? Description { get; set; }
 
-        public List<String> Specializations { get; set; } = new List<String>();
+        public List<int> Specializations { get; set; } = new List<int>();
         public string? ProfilePictureUrl { get; set; }
 
         // Auth
