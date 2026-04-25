@@ -40,6 +40,7 @@ builder.Services.AddScoped<IEmailProcessorService, EmailProcessorService>();
 builder.Services.AddScoped<IAccountService, AccountService>();
 builder.Services.AddScoped<IDoctorService, DoctorService>();
 builder.Services.AddScoped<IPatientService, PatientService>();
+builder.Services.AddScoped<ISpecializationsService, SpecializationsService>();
 
 builder.Services.AddSingleton(Channel.CreateUnbounded<EmailDataDto>());
 
