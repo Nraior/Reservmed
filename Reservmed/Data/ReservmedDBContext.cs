@@ -15,7 +15,7 @@ namespace Reservmed.Data
         public DbSet<Specialization> Specializations { get; set; }
 
         public DbSet<DoctorSpecialization> DoctorSpecializations { get; set; }
-
+        public DbSet<Appointment> Appointments { get; set; }
         protected override void OnModelCreating(ModelBuilder builder)
         {
             base.OnModelCreating(builder);
